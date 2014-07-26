@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>Mirror</title>
+</head>
+
+<style>
+    #content{
+        position: absolute;
+        height: 98%;
+        width: 98%
+    }
+    #stats{
+        position: absolute;
+        left: 2px;
+        z-index: 1;
+    }
+    video{
+        position: absolute;
+        height: 100%;
+        transform: scale(-1, 1);            /*For Firefox (& IE) */
+        -webkit-transform: scale(-1, 1);     /*for Chrome & Opera (& Safari) */
+    }
+    table, th, td {
+        border: 1px solid grey;
+        border-collapse: collapse;
+        text-align: right;
+    }
+    td:first-child{
+        text-align: left;
+    }
+</style>
+
+<body>
+    <div id="content">
+        <div id="stats"></div>
+        <video id="vidme" autoplay></video>
+    </div>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.0/jquery.min.js"></script>
+<script>
+    $(document).ready( function(){
+
+        var video = $('#vidme')[0];   //use var so we only call jQuery selectors once
+
+        var w =  1280,              //video width
+            h = 1080;                //video width
+
+        //Get the local video with getUserMedia
+        navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
+                //Make sure getUserMedia is available
+        if(!navigator.getUserMedia){
+            $("#content").innerHTML(":( Your browser does not support getUserMedia")
+        }
+        else{
+
+            //ask for 720p resolution
+            var constraints = {
+                audio: false,           //no need for audio
+                video: {
+                    mandatory: {
+                       minWidth: w,
+                       minHeight: h
+                    }
+                }
+            };
+
+            function onSuccess(stream) {
+                window.stream = stream; // stream available to console
+                video.src = window.URL.createObjectURL(stream);
+                video.play();
+                console.log("showing video");
+
+                //start collecting stats when the video starts
+                video.addEventListener("playing", calculateStats());
+
+            }
+            function onFail(err){
+                //To DO: on fail due to camera constraints try again with a lower res
+                $('#content').innerText("Sorry - you have an error: " + err);
+                console.log(err);
+            }
+
+            console.log("requested video size is: " + w + " x " + h );
+            navigator.getUserMedia(constraints, onSuccess, onFail);
+        }
+
+        //modified from: http://git.chromium.org/gitweb/?p=chromium.git;a=blob;f=chrome/test/data/media/html/media_stat_perf.html
+        function calculateStats() {
+
+            var decodedFrames = 0,
+                    droppedFrames = 0,
+                    startTime = new Date().getTime(),
+                    initialTime = new Date().getTime();
+
+            window.setInterval(function(){
+
+                //see if webkit stats are available; exit if they aren't
+                if (!video.webkitDecodedFrameCount){
+                    console.log("Video FPS calcs not supported");
+                    return;
+                }
+                //get the stats
+                else{
+                    var currentTime = new Date().getTime();
+                    var deltaTime = (currentTime - startTime) / 1000;
+                    var totalTime = (currentTime - initialTime) / 1000;
+                    startTime = currentTime;
+
+                    // Calculate decoded frames per sec.
+                    var currentDecodedFPS  = (video.webkitDecodedFrameCount - decodedFrames) / deltaTime;
+                    var decodedFPSavg = video.webkitDecodedFrameCount / totalTime;
+                    decodedFrames = video.webkitDecodedFrameCount;
+
+                    // Calculate dropped frames per sec.
+                    var currentDroppedFPS = (video.webkitDroppedFrameCount - droppedFrames) / deltaTime;
+                    var droppedFPSavg = video.webkitDroppedFrameCount / totalTime;
+                    droppedFrames = video.webkitDroppedFrameCount;
+
+                    //write the results to a table
+                    $("#stats")[0].innerHTML =
+                            "<table><tr><th>Type</th><th>Total</th><th>Avg</th><th>Current</th></tr>" +
+                            "<tr><td>Decoded</td><td>" + decodedFrames + "</td><td>" + decodedFPSavg.toFixed() + "</td><td>" + currentDecodedFPS.toFixed()+ "</td></tr>" +
+                            "<tr><td>Dropped</td><td>" + droppedFrames + "</td><td>" + droppedFPSavg.toFixed() + "</td><td>" + currentDroppedFPS.toFixed() + "</td></tr>" +
+                            "<tr><td>All</td><td>" + (decodedFrames + droppedFrames) + "</td><td>" + (decodedFPSavg + droppedFPSavg).toFixed() + "</td><td>" + (currentDecodedFPS + currentDroppedFPS).toFixed() + "</td></tr></table>" +
+                            "Camera resolution: " + video.videoWidth + " x " + video.videoHeight;
+                }
+            }, 1000);
+        }
+
+    });
+
+</script>
+
+</body>
+</html>
