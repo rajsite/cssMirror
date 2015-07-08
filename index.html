@@ -58,10 +58,7 @@
             var constraints = {
                 audio: false,           //no need for audio
                 video: {
-                    optional: {
-                      maxWidth: 1920,
-                      maxHeight: 1080
-                    }
+                    {optional: [{width: {max: w}}]}}
                 }
             };
 
