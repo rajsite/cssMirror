@@ -43,8 +43,8 @@
 
         var video = $('#vidme')[0];   //use var so we only call jQuery selectors once
 
-        var w =  1280,              //video width
-            h = 720;                //video width
+        var w =  1920,              //video width
+            h = 1080;                //video width
 
         //Get the local video with getUserMedia
         navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
@@ -58,9 +58,8 @@
             var constraints = {
                 audio: false,           //no need for audio
                 video: {
-                    mandatory: {
-                       minWidth: w,
-                       minHeight: h
+                       width: w,
+                       height: h
                     }
                 }
             };
