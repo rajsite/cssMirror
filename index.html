@@ -57,12 +57,12 @@
             //ask for 1080p resolution
             var constraints = {
                 audio: false,           //no need for audio
-                  video: {
+                video: {
                     mandatory: {
-                      maxWidth: w,
-                      maxHeight: h
-                    }
-                  }
+                        maxWidth: w,
+                        maxHeight: h
+                }
+              }
             };
 
             function onSuccess(stream) {
