@@ -54,12 +54,14 @@
         }
         else{
 
-            //ask for 720p resolution
+            //ask for 1080p resolution
             var constraints = {
                 audio: false,           //no need for audio
                 video: {
-                       width: w,
-                       height: h
+                    optional: {
+                      maxWidth: 1920,
+                      maxHeight: 1080
+                    }
                 }
             };
 
